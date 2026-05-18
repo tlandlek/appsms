@@ -150,9 +150,15 @@ details[open] summary::before { content: '− '; }
 ════════════════════════════════════════════ -->
 <div id="p-sms" class="page active">
   <div class="card">
-    <div class="tabs">
-      <button class="tab active" data-tab="single">👤 ส่งคนเดียว</button>
-      <button class="tab" data-tab="bulk">👥 ส่งหลายคน</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div class="tabs" style="margin-bottom:0;flex:1;">
+        <button class="tab active" data-tab="single">👤 ส่งคนเดียว</button>
+        <button class="tab" data-tab="bulk">👥 ส่งหลายคน</button>
+      </div>
+      <div id="live-clock" style="text-align:right;margin-left:12px;line-height:1.4;">
+        <div id="clock-date" style="font-size:12px;color:#6b7280;font-weight:500;"></div>
+        <div id="clock-time" style="font-size:20px;font-weight:700;color:#5ba8d4;letter-spacing:1px;"></div>
+      </div>
     </div>
 
     <!-- single -->
@@ -957,6 +963,21 @@ async function testConn() {
     showSt('st-cfg', `❌ ${e.message}`, 'error');
   }
 }
+
+// ── Live clock ───────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('th-TH', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+  const timeStr = now.toLocaleTimeString('th-TH', {
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+  });
+  $('clock-date').textContent = dateStr;
+  $('clock-time').textContent = timeStr;
+}
+updateClock();
+setInterval(updateClock, 1000);
 
 // ── Init ─────────────────────────────────────────────────────
 $('attend-date').value = today();

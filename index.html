@@ -7,13 +7,13 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 * { box-sizing: border-box; }
-body { font-family: 'Segoe UI','Sarabun',system-ui,sans-serif; margin: 0; background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); min-height: 100vh; color: #1f2937; }
+body { font-family: 'Segoe UI','Sarabun',system-ui,sans-serif; margin: 0; background: linear-gradient(135deg,#c5e3f7 0%,#e8f4fd 100%); min-height: 100vh; color: #1f2937; }
 
 /* nav */
 .nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.96); backdrop-filter: blur(8px); padding: 10px 16px; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 12px rgba(0,0,0,.1); }
-.nav-logo { font-weight: 700; font-size: 15px; color: #667eea; margin-right: auto; }
+.nav-logo { font-weight: 700; font-size: 15px; color: #5ba8d4; margin-right: auto; }
 .nav-btn { padding: 8px 13px; border: 2px solid transparent; border-radius: 8px; background: none; cursor: pointer; font-size: 13px; font-weight: 600; color: #6b7280; transition: all .15s; font-family: inherit; }
-.nav-btn.active { border-color: #667eea; color: #667eea; background: #f0f1ff; }
+.nav-btn.active { border-color: #5ba8d4; color: #5ba8d4; background: #e3f2fb; }
 .nav-btn:hover:not(.active) { background: #f3f4f6; color: #374151; }
 
 /* layout */
@@ -29,15 +29,15 @@ h3 { margin: 0 0 14px; font-size: 15px; color: #374151; }
 /* form */
 label { display: block; font-weight: 600; font-size: 13px; color: #374151; margin: 12px 0 5px; }
 input, select, textarea { width: 100%; padding: 10px 13px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; font-family: inherit; transition: border-color .15s; resize: vertical; }
-input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: #5ba8d4; }
 #studentId { font-size: 22px; text-align: center; letter-spacing: 2px; font-weight: 600; }
 #bulkIds { min-height: 100px; }
 
 /* buttons */
 .btn { display: inline-block; padding: 10px 16px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; font-family: inherit; }
 .btn-full { width: 100%; display: block; text-align: center; }
-.btn-primary { background: #667eea; color: #fff; }
-.btn-primary:hover:not(:disabled) { background: #5468d1; }
+.btn-primary { background: #5ba8d4; color: #fff; }
+.btn-primary:hover:not(:disabled) { background: #4a94be; }
 .btn-secondary { background: #e5e7eb; color: #374151; }
 .btn-secondary:hover:not(:disabled) { background: #d1d5db; }
 .btn-danger { background: #fee2e2; color: #991b1b; }
@@ -54,7 +54,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea
 /* tabs */
 .tabs { display: flex; gap: 5px; margin-bottom: 18px; flex-wrap: wrap; }
 .tab { flex: 1; min-width: 80px; padding: 8px; border: 2px solid #e5e7eb; border-radius: 8px; background: none; cursor: pointer; font-size: 12px; font-weight: 600; color: #6b7280; transition: all .15s; font-family: inherit; }
-.tab.active { border-color: #667eea; color: #667eea; background: #f0f1ff; }
+.tab.active { border-color: #5ba8d4; color: #5ba8d4; background: #e3f2fb; }
 .panel { display: none; }
 .panel.active { display: block; }
 
@@ -71,7 +71,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea
 .prog-wrap.show { display: block; }
 .prog-label { font-size: 12px; color: #6b7280; margin-bottom: 5px; }
 .prog-bar { height: 7px; background: #e5e7eb; border-radius: 99px; overflow: hidden; }
-.prog-fill { height: 100%; background: #667eea; border-radius: 99px; width: 0; transition: width .25s; }
+.prog-fill { height: 100%; background: #5ba8d4; border-radius: 99px; width: 0; transition: width .25s; }
 
 /* table */
 .tbl-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #e5e7eb; margin-top: 14px; }
@@ -108,12 +108,12 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea
 .tpl-box { display: none; margin-top: 10px; }
 .tpl-box.show { display: block; }
 .var-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-.chip { padding: 3px 8px; background: #f0f1ff; color: #667eea; border-radius: 99px; font-size: 11px; cursor: pointer; border: 1px solid #c7d2fe; user-select: none; }
+.chip { padding: 3px 8px; background: #e3f2fb; color: #5ba8d4; border-radius: 99px; font-size: 11px; cursor: pointer; border: 1px solid #b3d9f0; user-select: none; }
 .chip:hover { background: #e0e3ff; }
 
 /* upload zone */
 .upload-zone { border: 2px dashed #d1d5db; border-radius: 10px; padding: 28px; text-align: center; cursor: pointer; transition: all .15s; margin: 10px 0; }
-.upload-zone:hover, .upload-zone.drag { border-color: #667eea; background: #f0f1ff; }
+.upload-zone:hover, .upload-zone.drag { border-color: #5ba8d4; background: #e3f2fb; }
 .upload-zone input { display: none; }
 .upload-icon { font-size: 30px; margin-bottom: 6px; }
 
@@ -125,7 +125,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea
 
 /* misc */
 .hint { font-size: 11px; color: #9ca3af; margin-top: 4px; }
-details summary { cursor: pointer; color: #667eea; font-weight: 600; font-size: 14px; list-style: none; }
+details summary { cursor: pointer; color: #5ba8d4; font-weight: 600; font-size: 14px; list-style: none; }
 details summary::before { content: '+ '; }
 details[open] summary::before { content: '− '; }
 </style>
@@ -296,7 +296,7 @@ details[open] summary::before { content: '− '; }
   <div id="admin-panel" style="display:none;">
     <div class="card" style="padding:12px 18px;">
       <div style="display:flex;align-items:center;justify-content:space-between;">
-        <span style="font-weight:700;color:#667eea;">👑 ผู้ดูแลระบบ</span>
+        <span style="font-weight:700;color:#5ba8d4;">👑 ผู้ดูแลระบบ</span>
         <button class="btn btn-secondary btn-sm" onclick="doLogout()">ออกจากระบบ</button>
       </div>
     </div>

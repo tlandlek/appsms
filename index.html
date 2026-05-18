@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แจ้งการมาเรียนผ่าน SMS</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Sarabun', system-ui, sans-serif;
+    margin: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #1f2937;
+  }
+  .wrap { max-width: 580px; margin: 0 auto; }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px 28px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    margin-bottom: 14px;
+  }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 18px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 6px; margin-bottom: 20px; }
+  .tab {
+    flex: 1; padding: 10px; border: 2px solid #e5e7eb;
+    border-radius: 10px; background: none; cursor: pointer;
+    font-size: 14px; font-weight: 600; color: #6b7280;
+    transition: all .15s;
+  }
+  .tab.active { border-color: #667eea; color: #667eea; background: #f0f1ff; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  label { display: block; font-weight: 600; margin: 14px 0 6px; font-size: 14px; }
+  input, select, textarea {
+    width: 100%; padding: 11px 14px; border: 1px solid #d1d5db;
+    border-radius: 10px; font-size: 15px; font-family: inherit;
+    transition: border-color .15s; resize: vertical;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; }
+  #studentId { font-size: 22px; text-align: center; letter-spacing: 2px; font-weight: 600; }
+  #bulkIds { min-height: 110px; font-size: 15px; }
+
+  button {
+    width: 100%; padding: 13px; margin-top: 14px;
+    background: #667eea; color: #fff; border: none; border-radius: 10px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: background .15s, transform .05s;
+  }
+  button:hover:not(:disabled) { background: #5468d1; }
+  button:active:not(:disabled) { transform: scale(0.98); }
+  button:disabled { background: #9ca3af; cursor: not-allowed; }
+  button.secondary { background: #e5e7eb; color: #374151; margin-top: 0; }
+  button.secondary:hover:not(:disabled) { background: #d1d5db; }
+  button.danger { background: #fee2e2; color: #991b1b; margin-top: 0; }
+  button.danger:hover:not(:disabled) { background: #fecaca; }
+
+  .row { display: flex; gap: 8px; margin-top: 12px; }
+  .row > * { flex: 1; margin-top: 0; }
+
+  /* Status */
+  .status {
+    margin-top: 14px; padding: 12px 14px; border-radius: 10px;
+    font-size: 14px; display: none;
+  }
+  .status.show { display: block; }
+  .status.success { background: #d1fae5; color: #065f46; }
+  .status.error   { background: #fee2e2; color: #991b1b; }
+  .status.info    { background: #dbeafe; color: #1e40af; }
+
+  /* Progress bar */
+  .progress-wrap { margin-top: 14px; display: none; }
+  .progress-wrap.show { display: block; }
+  .progress-label { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
+  .progress-bar { height: 8px; background: #e5e7eb; border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #667eea; border-radius: 99px; width: 0; transition: width .3s; }
+
+  /* Bulk results table */
+  .result-table { margin-top: 14px; display: none; overflow: hidden; border-radius: 10px; border: 1px solid #e5e7eb; }
+  .result-table.show { display: block; }
+  .result-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .result-table th {
+    background: #f9fafb; padding: 9px 12px; text-align: left;
+    font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;
+  }
+  .result-table td { padding: 9px 12px; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
+  .result-table tr:last-child td { border-bottom: none; }
+  .result-table tr.ok td { background: #f0fdf4; }
+  .result-table tr.fail td { background: #fff7f7; }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600;
+  }
+  .badge.ok   { background: #d1fae5; color: #065f46; }
+  .badge.fail { background: #fee2e2; color: #991b1b; }
+
+  /* Template editor */
+  .template-section { margin-top: 14px; }
+  .var-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+  .chip {
+    padding: 3px 9px; background: #f0f1ff; color: #667eea;
+    border-radius: 99px; font-size: 12px; cursor: pointer; border: 1px solid #c7d2fe;
+    user-select: none;
+  }
+  .chip:hover { background: #e0e3ff; }
+  #customMsg { min-height: 80px; font-size: 14px; display: none; }
+  #customMsg.show { display: block; }
+  .hint { font-size: 12px; color: #6b7280; margin-top: 5px; }
+
+  /* Log */
+  .log { margin-top: 16px; max-height: 200px; overflow-y: auto; }
+  .log-item {
+    padding: 9px 12px; border-left: 3px solid #d1d5db;
+    background: #f9fafb; margin-bottom: 5px; border-radius: 4px; font-size: 13px;
+  }
+  .log-item.success { border-left-color: #10b981; }
+  .log-item.error   { border-left-color: #ef4444; }
+  .log-time { color: #9ca3af; font-size: 11px; }
+
+  details { margin-top: 10px; }
+  summary { cursor: pointer; color: #667eea; font-size: 14px; font-weight: 600; user-select: none; }
+  .config-inner { margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Main card -->
+  <div class="card">
+    <h1>📚 แจ้งการมาเรียน</h1>
+    <div class="subtitle">ส่ง SMS แจ้งผู้ปกครองผ่าน Thaibulksms</div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="single">👤 ส่งคนเดียว</button>
+      <button class="tab" data-tab="bulk">👥 ส่งหลายคน</button>
+    </div>
+
+    <!-- ── Panel: single ── -->
+    <div id="panel-single" class="panel active">
+      <label for="studentId">รหัสนักเรียน</label>
+      <input id="studentId" type="text" inputmode="numeric" autocomplete="off"
+             placeholder="เช่น 12345" autofocus>
+
+      <label for="statusType">สถานะ</label>
+      <select id="statusType">
+        <option value="arrive">มาถึงโรงเรียนแล้ว</option>
+        <option value="leave">ออกจากโรงเรียนแล้ว</option>
+        <option value="absent">ไม่มาเรียนวันนี้</option>
+        <option value="late">มาสาย</option>
+        <option value="custom">กำหนดข้อความเอง</option>
+      </select>
+
+      <!-- template editor (single) -->
+      <div class="template-section" id="tpl-single">
+        <textarea id="customMsg-single" class="customMsg-input" placeholder="พิมพ์ข้อความ เช่น [{school}] {name} มาถึงแล้ว เวลา {time}"></textarea>
+        <div class="var-chips" data-target="customMsg-single">
+          <span class="chip">{name}</span><span class="chip">{id}</span>
+          <span class="chip">{date}</span><span class="chip">{time}</span>
+          <span class="chip">{school}</span><span class="chip">{parentName}</span>
+        </div>
+        <div class="hint">คลิกตัวแปรเพื่อแทรก • ตัวแปรจะถูกแทนด้วยข้อมูลจริงตอนส่ง</div>
+      </div>
+
+      <button id="sendBtn">ส่งข้อความ</button>
+      <div id="status-single" class="status"></div>
+      <div class="log" id="log"></div>
+    </div>
+
+    <!-- ── Panel: bulk ── -->
+    <div id="panel-bulk" class="panel">
+      <label for="bulkIds">รหัสนักเรียน (ใส่ทีละบรรทัด หรือคั่นด้วยลูกน้ำ)</label>
+      <textarea id="bulkIds" placeholder="12345&#10;12346&#10;12347&#10;หรือ 12345, 12346, 12347"></textarea>
+
+      <label for="statusType-bulk">สถานะ</label>
+      <select id="statusType-bulk">
+        <option value="arrive">มาถึงโรงเรียนแล้ว</option>
+        <option value="leave">ออกจากโรงเรียนแล้ว</option>
+        <option value="absent">ไม่มาเรียนวันนี้</option>
+        <option value="late">มาสาย</option>
+        <option value="custom">กำหนดข้อความเอง</option>
+      </select>
+
+      <!-- template editor (bulk) -->
+      <div class="template-section" id="tpl-bulk">
+        <textarea id="customMsg-bulk" class="customMsg-input" placeholder="พิมพ์ข้อความ เช่น [{school}] {name} มาถึงแล้ว เวลา {time}"></textarea>
+        <div class="var-chips" data-target="customMsg-bulk">
+          <span class="chip">{name}</span><span class="chip">{id}</span>
+          <span class="chip">{date}</span><span class="chip">{time}</span>
+          <span class="chip">{school}</span><span class="chip">{parentName}</span>
+        </div>
+        <div class="hint">คลิกตัวแปรเพื่อแทรก • ข้อความเดียวกันนี้จะส่งให้ทุกคนในรายการ</div>
+      </div>
+
+      <div class="row">
+        <button id="bulkSendBtn">ส่งข้อความทั้งหมด</button>
+        <button id="clearBulkBtn" class="secondary" style="flex:0 0 auto;width:auto;padding:13px 16px;">ล้าง</button>
+      </div>
+
+      <div id="status-bulk" class="status"></div>
+
+      <div class="progress-wrap" id="progressWrap">
+        <div class="progress-label" id="progressLabel">กำลังส่ง...</div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+
+      <div class="result-table" id="resultTable">
+        <table>
+          <thead><tr><th>รหัส</th><th>ชื่อ</th><th>เบอร์</th><th>ผล</th></tr></thead>
+          <tbody id="resultBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Config card -->
+  <div class="card">
+    <details>
+      <summary>⚙️ ตั้งค่า</summary>
+      <div class="config-inner">
+        <label for="endpoint">Apps Script Web App URL</label>
+        <input id="endpoint" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+
+        <label for="schoolName">ชื่อโรงเรียน (ใช้ในตัวแปร {school})</label>
+        <input id="schoolName" type="text" placeholder="โรงเรียนตัวอย่าง">
+
+        <div class="row" style="margin-top:14px;">
+          <button class="secondary" id="saveConfig">บันทึก</button>
+          <button class="secondary" id="testConn">ทดสอบเชื่อมต่อ</button>
+        </div>
+        <div id="status-cfg" class="status"></div>
+      </div>
+    </details>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+// ─── Helpers ────────────────────────────────────────────────
+const $ = (id) => document.getElementById(id);
+
+const cfg = {
+  get endpoint()   { return localStorage.getItem('sms_endpoint')  || ''; },
+  set endpoint(v)  { localStorage.setItem('sms_endpoint', v); },
+  get schoolName() { return localStorage.getItem('sms_school')    || ''; },
+  set schoolName(v){ localStorage.setItem('sms_school', v); },
+};
+
+$('endpoint').value   = cfg.endpoint;
+$('schoolName').value = cfg.schoolName;
+
+function showStatus(id, msg, type = 'info') {
+  const el = $(id);
+  el.innerHTML = msg;
+  el.className = `status show ${type}`;
+}
+
+function addLog(msg, type = '') {
+  const log = $('log');
+  const item = document.createElement('div');
+  item.className = `log-item ${type}`;
+  const time = new Date().toLocaleTimeString('th-TH');
+  item.innerHTML = `<div class="log-time">${time}</div>${msg}`;
+  log.insertBefore(item, log.firstChild);
+  while (log.children.length > 30) log.removeChild(log.lastChild);
+}
+
+async function callBackend(action, data) {
+  if (!cfg.endpoint) throw new Error('ยังไม่ได้ตั้งค่า Apps Script URL');
+  const res = await fetch(cfg.endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action, ...data }),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error || 'unknown error');
+  return json;
+}
+
+// ─── Tabs ───────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    $('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ─── Template editor toggle ─────────────────────────────────
+function setupTemplateToggle(selectId, tplId, textareaId) {
+  const sel = $(selectId);
+  const tpl = $(tplId);
+  const txt = $(textareaId);
+
+  function update() {
+    if (sel.value === 'custom') {
+      txt.style.display = 'block';
+      tpl.style.display = 'block';
+    } else {
+      txt.style.display = 'none';
+      // still show chips if custom was already visible, but simpler: hide all
+      tpl.style.display = 'none';
+    }
+  }
+  sel.addEventListener('change', update);
+  update();
+}
+setupTemplateToggle('statusType',      'tpl-single', 'customMsg-single');
+setupTemplateToggle('statusType-bulk', 'tpl-bulk',   'customMsg-bulk');
+
+// ─── Variable chips ─────────────────────────────────────────
+document.querySelectorAll('.var-chips').forEach(row => {
+  const targetId = row.dataset.target;
+  row.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const ta = $(targetId);
+      const start = ta.selectionStart;
+      const end   = ta.selectionEnd;
+      const val   = ta.value;
+      ta.value = val.slice(0, start) + chip.textContent + val.slice(end);
+      ta.selectionStart = ta.selectionEnd = start + chip.textContent.length;
+      ta.focus();
+    });
+  });
+});
+
+// ─── Single send ────────────────────────────────────────────
+async function sendSingle() {
+  const id         = $('studentId').value.trim();
+  const statusType = $('statusType').value;
+  const customTpl  = $('customMsg-single').value.trim();
+
+  if (!id) { showStatus('status-single', 'กรุณาใส่รหัสนักเรียน', 'error'); return; }
+  if (statusType === 'custom' && !customTpl) {
+    showStatus('status-single', 'กรุณาพิมพ์ข้อความที่ต้องการส่ง', 'error'); return;
+  }
+
+  const btn = $('sendBtn');
+  btn.disabled = true; btn.textContent = 'กำลังส่ง...';
+  showStatus('status-single', 'กำลังค้นหานักเรียนและส่งข้อความ...', 'info');
+
+  try {
+    const result = await callBackend('send', {
+      studentId: id, statusType,
+      schoolName: cfg.schoolName,
+      customTemplate: customTpl || null,
+    });
+    showStatus('status-single',
+      `✅ ส่งสำเร็จถึง <b>${result.parentPhone}</b> (${result.studentName})`, 'success');
+    addLog(`<b>${result.studentName}</b> (${id}) → ${result.parentPhone}<br><span style="color:#6b7280">${result.message}</span>`, 'success');
+    $('studentId').value = '';
+    $('studentId').focus();
+  } catch (e) {
+    showStatus('status-single', `❌ ${e.message}`, 'error');
+    addLog(`รหัส ${id}: ${e.message}`, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'ส่งข้อความ';
+  }
+}
+
+$('sendBtn').addEventListener('click', sendSingle);
+$('studentId').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendSingle(); });
+
+// ─── Bulk send ───────────────────────────────────────────────
+function parseIds(raw) {
+  return raw.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+}
+
+async function sendBulk() {
+  const raw        = $('bulkIds').value;
+  const ids        = parseIds(raw);
+  const statusType = $('statusType-bulk').value;
+  const customTpl  = $('customMsg-bulk').value.trim();
+
+  if (ids.length === 0) { showStatus('status-bulk', 'กรุณาใส่รหัสนักเรียนอย่างน้อย 1 คน', 'error'); return; }
+  if (statusType === 'custom' && !customTpl) {
+    showStatus('status-bulk', 'กรุณาพิมพ์ข้อความที่ต้องการส่ง', 'error'); return;
+  }
+
+  const btn = $('bulkSendBtn');
+  btn.disabled = true; btn.textContent = `กำลังส่ง (0/${ids.length})...`;
+
+  // reset UI
+  const progressWrap = $('progressWrap');
+  const progressFill = $('progressFill');
+  const progressLabel= $('progressLabel');
+  const resultTable  = $('resultTable');
+  const resultBody   = $('resultBody');
+  resultBody.innerHTML = '';
+  progressFill.style.width = '0%';
+  progressWrap.classList.add('show');
+  resultTable.classList.add('show');
+  showStatus('status-bulk', `กำลังส่ง ${ids.length} คน...`, 'info');
+
+  let ok = 0, fail = 0;
+
+  // send one-by-one so we can show progress (Apps Script has per-request limits)
+  for (let i = 0; i < ids.length; i++) {
+    const id = ids[i];
+    progressLabel.textContent = `กำลังส่ง ${i + 1} / ${ids.length} (รหัส ${id})`;
+    progressFill.style.width  = `${Math.round(((i + 1) / ids.length) * 100)}%`;
+    btn.textContent = `กำลังส่ง (${i + 1}/${ids.length})...`;
+
+    let tr = document.createElement('tr');
+    try {
+      const r = await callBackend('send', {
+        studentId: id, statusType,
+        schoolName: cfg.schoolName,
+        customTemplate: customTpl || null,
+      });
+      ok++;
+      tr.className = 'ok';
+      tr.innerHTML = `
+        <td>${id}</td>
+        <td>${r.studentName}</td>
+        <td>${r.parentPhone}</td>
+        <td><span class="badge ok">✅ สำเร็จ</span></td>`;
+    } catch (e) {
+      fail++;
+      tr.className = 'fail';
+      tr.innerHTML = `
+        <td>${id}</td>
+        <td colspan="2" style="color:#6b7280">${e.message}</td>
+        <td><span class="badge fail">❌ ล้มเหลว</span></td>`;
+    }
+    resultBody.insertBefore(tr, resultBody.firstChild);
+  }
+
+  progressLabel.textContent = `เสร็จแล้ว: สำเร็จ ${ok} คน, ล้มเหลว ${fail} คน`;
+  progressFill.style.width  = '100%';
+  const type = fail === 0 ? 'success' : (ok === 0 ? 'error' : 'info');
+  showStatus('status-bulk',
+    `เสร็จแล้ว: ✅ สำเร็จ <b>${ok}</b> คน &nbsp;❌ ล้มเหลว <b>${fail}</b> คน`, type);
+
+  btn.disabled = false; btn.textContent = 'ส่งข้อความทั้งหมด';
+}
+
+$('bulkSendBtn').addEventListener('click', sendBulk);
+
+$('clearBulkBtn').addEventListener('click', () => {
+  $('bulkIds').value = '';
+  $('resultBody').innerHTML = '';
+  $('resultTable').classList.remove('show');
+  $('progressWrap').classList.remove('show');
+  const s = $('status-bulk');
+  s.className = 'status';
+  $('bulkIds').focus();
+});
+
+// ─── Config ──────────────────────────────────────────────────
+$('saveConfig').addEventListener('click', () => {
+  cfg.endpoint   = $('endpoint').value.trim();
+  cfg.schoolName = $('schoolName').value.trim();
+  showStatus('status-cfg', 'บันทึกแล้ว ✅', 'success');
+});
+
+$('testConn').addEventListener('click', async () => {
+  cfg.endpoint = $('endpoint').value.trim();
+  showStatus('status-cfg', 'กำลังทดสอบ...', 'info');
+  try {
+    const r = await callBackend('ping', {});
+    showStatus('status-cfg', `✅ เชื่อมต่อสำเร็จ — พบนักเรียน <b>${r.studentCount}</b> คน`, 'success');
+  } catch (e) {
+    showStatus('status-cfg', `❌ ${e.message}`, 'error');
+  }
+});
+</script>
+</body>
+</html>
